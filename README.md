@@ -10,13 +10,8 @@ A clean, modular PyTorch reproduction of the **Deep Q-Network** algorithm from
 Mnih et al., *Human-level control through deep reinforcement learning* (**Nature, 2015**),
 applied to the Atari game **Pong** via the Gymnasium / ALE interface.
 
-The agent learns from raw 84×84 grayscale pixels and reaches a near-perfect
-score (≥ +18 average over 100 episodes) in roughly **1.5M environment steps** on
-a single Colab GPU.
-
-<p align="center">
-  <img src="assets/pong_agent.gif" alt="Greedy agent playing Pong" width="320">
-</p>
+The agent learns to play directly from raw 84×84 grayscale pixels, with no
+hand-crafted features and no demonstrations.
 
 ---
 
@@ -36,25 +31,35 @@ a single Colab GPU.
 
 ## Results
 
-Training was stopped via the *early-stopping* criterion (mean reward over the
-last 100 episodes ≥ 18.0). On a Colab T4 GPU:
+Training was run for the full **1.5M environment step** budget (100 epochs of
+15 000 steps each) on a single Colab T4 GPU.
 
-| Metric                                    | Value          |
-| ----------------------------------------- | -------------- |
-| Final mean reward (last 100 episodes)     | **≈ +19 / 21** |
-| Environment steps to convergence          | ~1.3–1.5 M     |
-| Wall-clock time (Colab T4)                | 3–5 h          |
-| Replay buffer size                        | 100 000        |
-| Final ε                                   | 0.02           |
+| Metric                                | Value          |
+| ------------------------------------- | -------------- |
+| Final mean reward (last 100 episodes) | **≈ +4**       |
+| Reward at start (random policy)       | ≈ −20          |
+| Environment steps                     | 1.5 M          |
+| Wall-clock time (Colab T4)            | ~4 h           |
+| Replay buffer size                    | 100 000        |
+| Final ε                               | 0.02           |
 
 <p align="center">
   <img src="assets/pong_average_reward.png" alt="Average reward per episode" width="48%">
   <img src="assets/pong_average_max_q.png"  alt="Average max-Q on held-out states" width="48%">
 </p>
 
-The reward curve climbs from −21 (random play) to +18/+19, while the average
-max-Q on the held-out set grows smoothly without diverging — the same
-qualitative behavior reported in the Nature paper.
+The agent climbs from the random-play baseline (≈ −20) to a positive return
+within the available training budget, and both curves are still rising sharply
+at the budget cutoff — the model had not yet saturated when training stopped.
+The average max-Q on the held-out set grows smoothly and monotonically, the
+same qualitative behavior reported in the Nature paper (Figure 2b) and a
+sanity check that value learning is stable.
+
+With a larger compute budget (the original paper uses 50M steps and a 1M-sized
+replay buffer) the agent would be expected to converge to the near-perfect
+score of +18/+21 reported in the literature. See
+[`report/design_choices.md`](report/design_choices.md) for details on the
+budget-driven trade-offs.
 
 ---
 
@@ -71,8 +76,8 @@ DQN-Pong/
 │   └── train.py           # training loop + early stopping + logging
 ├── notebooks/
 │   ├── 01_train_dqn_pong.ipynb         # end-to-end training (Colab)
-│   └── 02_evaluate_and_visualize.ipynb # GIF + Nature-style plots
-├── assets/                # GIF and figures shown in this README
+│   └── 02_evaluate_and_visualize.ipynb # Nature-style plots
+├── assets/                # figures shown in this README
 ├── report/
 │   └── design_choices.md  # implementation notes vs the paper
 ├── requirements.txt
@@ -89,13 +94,13 @@ DQN-Pong/
 2. Set the runtime to **GPU** (T4 is enough).
 3. Run all cells. The trained weights are saved to `dqn_pong_final.pt` and the
    training history to `artifacts/history.json`.
-4. Open `notebooks/02_evaluate_and_visualize.ipynb` to generate the GIF and the
-   two Nature-style plots.
+4. Open `notebooks/02_evaluate_and_visualize.ipynb` to regenerate the two
+   Nature-style plots.
 
 ### Option B — Local
 
 ```bash
-git clone https://github.com/<your-username>/DQN-Pong.git
+git clone https://github.com/fabrizfedee/DQN-Pong.git
 cd DQN-Pong
 pip install -r requirements.txt
 AutoROM --accept-license     # one-time, downloads the Atari ROMs
@@ -140,7 +145,6 @@ $$
 \mathcal{L}(\theta) = \mathbb{E}_{(s,a,r,s') \sim \mathcal{D}}
 \left[\,\big(r + \gamma \max_{a'} Q_{\theta^-}(s', a') - Q_\theta(s, a)\big)^2\,\right]
 $$
-
 Two well-known tricks stabilize training:
 1. **Experience replay** breaks the temporal correlation between consecutive
    transitions, making the gradient estimator closer to i.i.d.
@@ -177,3 +181,4 @@ The original paper:
 ## License
 
 MIT — see [`LICENSE`](LICENSE).
+
