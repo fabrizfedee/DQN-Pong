@@ -60,19 +60,33 @@ for value learning and historically tracks performance closely.
 
 ## 6. Differences from the original paper
 
-| What                | Paper      | This repo  | Why                                  |
-| ------------------- | ---------- | ---------- | ------------------------------------ |
-| Total env. steps    | 50 M       | 1.5 M      | Single-game Colab budget             |
-| Replay buffer size  | 1 M        | 100 k      | Memory on Colab T4                   |
-| Optimizer           | RMSProp    | Adam       | Modern default, equivalent on Pong   |
+| What                | Paper      | This repo    | Why                                |
+| ------------------- | ---------- | ------------ | ---------------------------------- |
+| Total env. steps    | 50 M       | 1.5 M        | Single-game Colab budget           |
+| Replay buffer size  | 1 M        | 100 k        | Memory on Colab T4                 |
+| Optimizer           | RMSProp    | Adam         | Modern default, equivalent on Pong |
 | Frames between eps  | 1 M anneal | 150 k anneal | Faster exploration in fewer steps  |
-| Early stopping      | none       | mean ≥ 18  | Save compute when Pong is solved     |
+| Early stopping      | none       | mean ≥ 18    | Save compute when Pong is solved   |
 
 These choices preserve the algorithm and only adjust the *training budget* so
 the project fits inside a single Colab session.
 
-## 7. What I would do next
+## 7. Observed training behavior
 
+The reported run reached a final average reward of about **+4** after the
+full 1.5M-step budget (100 epochs), starting from a random-play baseline of
+about **−20**. The learning curves were still rising sharply at the budget
+cutoff, indicating the agent had not yet saturated — consistent with the
+much larger budget used in the original paper. The held-out average max-Q
+grew smoothly and monotonically throughout training, the same qualitative
+behavior reported in Mnih et al. (Figure 2b) and a sanity check that value
+learning was stable rather than diverging.
+
+## 8. What I would do next
+
+- **More compute**: extend the training budget toward the paper's 50M steps
+  (or, equivalently, a larger replay buffer) to confirm convergence to the
+  +18/+21 score reported in the literature.
 - **Double DQN** (Van Hasselt et al., 2016) to reduce the optimistic bias in
   the bootstrap target.
 - **Dueling architecture** (Wang et al., 2016) for better state-value learning.
