@@ -145,6 +145,7 @@ $$
 \mathcal{L}(\theta) = \mathbb{E}_{(s,a,r,s') \sim \mathcal{D}}
 \left[\,\big(r + \gamma \max_{a'} Q_{\theta^-}(s', a') - Q_\theta(s, a)\big)^2\,\right]
 $$
+
 Two well-known tricks stabilize training:
 1. **Experience replay** breaks the temporal correlation between consecutive
    transitions, making the gradient estimator closer to i.i.d.
