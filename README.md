@@ -43,11 +43,6 @@ Training was run for the full **1.5M environment step** budget (100 epochs of
 | Replay buffer size                    | 100 000        |
 | Final ε                               | 0.02           |
 
-<p align="center">
-  <img src="assets/pong_average_reward.png" alt="Average reward per episode" width="48%">
-  <img src="assets/pong_average_max_q.png"  alt="Average max-Q on held-out states" width="48%">
-</p>
-
 The agent climbs from the random-play baseline (≈ −20) to a positive return
 within the available training budget, and both curves are still rising sharply
 at the budget cutoff — the model had not yet saturated when training stopped.
